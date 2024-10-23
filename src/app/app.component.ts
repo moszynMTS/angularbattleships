@@ -16,7 +16,7 @@ export class AppComponent implements OnInit {
     { id: 2, label: "20x20", size: 20 },
   ];
   delayOptions: number[] = [1, 10, 100, 1000, 10000];
-  players: string[] = ["RED", "BLU"];
+  players: string[] = ["RED", "BLU"]; //mozna zrobic formularz pod to i sobie dopisywac
   tiles1: number[][] = []; // red
   tiles2: number[][] = []; // blu
   states: any = ['', '💣', '⬛', '💥'];
@@ -33,10 +33,10 @@ export class AppComponent implements OnInit {
     { id: 2, values: [4, 3, 3, 2, 2, 2, 1, 1, 1, 1] },
   ];
   shipsToPlace: number[] = [];
-  playerShots: number[] = [0, 0]; // Array to keep track of shots taken by each player
-  playerHits: number[] = [0, 0]; // Array to keep track of successful hits for each player
+  playerShots: number[] = [0, 0]; // Ardo statystyk
+  playerHits: number[] = [0, 0];
   isGameOver: boolean = false;
-  startTime: number | null = null; // Timestamp to track when the game starts
+  startTime: number | null = null;
   gameLogs: string = "Wygrany;Procent trafien 1;Procent trafien2;Nietrafione statki;Czas gry(s);Plansza;Opoznienie;Konfiguracja statkow;\n";
   constructor() {}
 
@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
   }
 
   setItem(playerIndex: number, rowIndex: number, colIndex: number) {
-    // manual checking
+    // manual checking for debug
     if (playerIndex === 0) {
       this.tiles1[rowIndex][colIndex] = this.tiles1[rowIndex][colIndex] + 1;
     } else {
@@ -89,10 +89,10 @@ export class AppComponent implements OnInit {
     this.isStarted = !this.isStarted;
 
     if (this.isStarted) {
-      this.startTime = Date.now(); // Set the start time
+      this.startTime = Date.now();
       this.startShootingLoop(delay);
     } else {
-      this.startTime = null; // Reset the start time if the game is stopped
+      this.startTime = null;
     }
   }
 
@@ -114,29 +114,26 @@ export class AppComponent implements OnInit {
       this.isStarted = false;
       return;
     }
-
-    // Check if any player has remaining ships
-    const hasPlayer1Ships = this.tiles1.some(row => row.includes(2)); // Check if player 1 has ships
-    const hasPlayer2Ships = this.tiles2.some(row => row.includes(2)); // Check if player 2 has ships
+    const hasPlayer1Ships = this.tiles1.some(row => row.includes(2)); // check statkow
+    const hasPlayer2Ships = this.tiles2.some(row => row.includes(2));
 
     // Check game over conditions
     if (!hasPlayer1Ships) {
-      this.isGameEnded(2); // Player 2 wins
+      this.isGameEnded(2);
       return;
     }
-
     if (!hasPlayer2Ships) {
-      this.isGameEnded(1); // Player 1 wins
+      this.isGameEnded(1); //
       return;
     }
 
     do {
       rowIndex = Math.floor(Math.random() * size);
       colIndex = Math.floor(Math.random() * size);
-      shotKey = `${rowIndex}:${colIndex}`; // Create a unique key for the shot
+      shotKey = `${rowIndex}:${colIndex}`;
     } while (
-      (playerIndex === 0 && this.shots1.has(shotKey)) || // Check if shot already taken for player 1
-      (playerIndex === 1 && this.shots2.has(shotKey))    // Check if shot already taken for player 2
+      (playerIndex === 0 && this.shots1.has(shotKey)) ||
+      (playerIndex === 1 && this.shots2.has(shotKey))
     );
 
     // Count the shot for the current player
@@ -181,13 +178,13 @@ export class AppComponent implements OnInit {
       let placed = false;
 
       while (!placed) {
-        const isVertical = Math.random() < 0.5; // Randomly decide orientation (vertical or horizontal)
+        const isVertical = Math.random() < 0.5; // kierunek
         const rowIndex = Math.floor(Math.random() * (isVertical ? this.selectedSize - shipLength + 1 : this.selectedSize));
         const colIndex = Math.floor(Math.random() * (isVertical ? this.selectedSize : this.selectedSize - shipLength + 1));
 
         if (this.canPlaceShip(tiles, rowIndex, colIndex, shipLength, isVertical)) {
           for (let i = 0; i < shipLength; i++) {
-            tiles[isVertical ? rowIndex + i : rowIndex][isVertical ? colIndex : colIndex + i] = 2; // Mark the tile as occupied by a ship
+            tiles[isVertical ? rowIndex + i : rowIndex][isVertical ? colIndex : colIndex + i] = 2; //set ship 
           }
           placed = true;
         }
@@ -205,7 +202,7 @@ export class AppComponent implements OnInit {
       }
     }
 
-    // all possible direction combinations so that ships do not touch each other
+    // all directions
     const directions = [
       [-1, -1], [-1, 0], [-1, 1],
       [0, -1],           [0, 1],
@@ -231,11 +228,11 @@ export class AppComponent implements OnInit {
   }
 
   isGameEnded(winningPlayer: number) {
-    this.isStarted = false; // Stop the game
+    this.isStarted = false;
     this.isGameOver = true;
 
     const endTime = Date.now();
-    const durationInSeconds = (endTime - (this.startTime ?? endTime)) / 1000; // Calculate duration in seconds
+    const durationInSeconds = (endTime - (this.startTime ?? endTime)) / 1000;
 
     console.log(`Gra zakończona! Wygrał gracz ${this.players[winningPlayer - 1]}!`);
     console.log(`Czas gry: ${durationInSeconds.toFixed(2)} sekund.`);
@@ -254,7 +251,7 @@ export class AppComponent implements OnInit {
   resetGame() {
     this.shipsSet = false;
     this.isStarted = false;
-    this.startTime = null; // Reset start time on game reset
+    this.startTime = null;
     this.generateTiles();
     this.shots1 = new Set();
     this.shots2 = new Set();
@@ -262,13 +259,12 @@ export class AppComponent implements OnInit {
   }
 
   downloadFile() {
-    console.log("GAMELOGS", this.gameLogs)
     const blob = new Blob([this.gameLogs], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const now = new Date();
-    const dateString = now.toISOString().slice(0, 10); // Get the date in YYYY-MM-DD format
-    const timeString = now.toTimeString().slice(0, 5).replace(':', '-'); // Get time in HH-MM format
-    const filename = `${dateString}_${timeString}_SHIPS.csv`; // Format filename
+    const dateString = now.toISOString().slice(0, 10);
+    const timeString = now.toTimeString().slice(0, 5).replace(':', '-');
+    const filename = `${dateString}_${timeString}_SHIPS.csv`;
 
     const a = document.createElement('a');
     a.href = url;
@@ -276,7 +272,7 @@ export class AppComponent implements OnInit {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); // Free memory
+    URL.revokeObjectURL(url); // free memory
   }
 
 }
