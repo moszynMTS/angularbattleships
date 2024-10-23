@@ -1,0 +1,15 @@
+<div class="container">
+  <div class="row" class="chooseSubject" style="width: 100%; border-radius: 0px 0px 5px 5px; border: 1px solid #487eb0;">
+    <div class="text-center">
+      <h1 class="display-4">Symulator statków</h1>
+      <div style="width: 98%; margin: auto; margin-bottom: 10px">
+        <select id="subjectSelect" class="form-select" aria-label="Wybierz temat laboratorium" [formControl]="subject">
+          <option *ngFor="let labItem of lab" [value]="labItem.id">[{{labItem.id}}] {{ labItem.label }}</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
