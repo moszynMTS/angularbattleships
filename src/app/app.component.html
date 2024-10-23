@@ -1,13 +1,41 @@
-<div class="container">
-  <div class="row" class="chooseSubject" style="width: 100%; border-radius: 0px 0px 5px 5px; border: 1px solid #487eb0;">
-    <div class="text-center">
-      <h1 class="display-4">Symulator statków</h1>
-      <div style="width: 98%; margin: auto; margin-bottom: 10px">
-        <select id="subjectSelect" class="form-select" aria-label="Wybierz temat laboratorium" [formControl]="subject">
-          <option *ngFor="let labItem of lab" [value]="labItem.id">[{{labItem.id}}] {{ labItem.label }}</option>
-        </select>
+<div class="container" style="margin: 0">
+  <div style="width: 98vw; margin: auto; display: flex; justify-content: center;">
+    <div class="row chooseSubject" style="width: 80%; border-radius: 0px 0px 5px 5px; border: 1px solid #487eb0;">
+      <div class="text-center">
+        <h1 class="display-4">Symulator statków</h1>
+        <div style="width: 98%; margin: auto; margin-bottom: 10px">
+          <select id="subjectSelect" class="form-select" aria-label="Wybierz temat laboratorium" [formControl]="subject">
+            <option *ngFor="let option of sizeOptions" [value]="option.id">Plansza {{ option.label }}</option>
+          </select>
+        </div>
+        <div style="width: 98%; margin: auto; margin-bottom: 10px">
+          <select id="subjectSelect" class="form-select" aria-label="Wybierz czas ruchu" [formControl]="delay">
+            <option *ngFor="let option of delayOptions" [value]="option">Opóźnienie {{ option }} ms</option>
+          </select>
+        </div>
+        <div style="width: 98%; margin: auto; margin-bottom: 10px">
+          <select id="subjectSelect" class="form-select" aria-label="Wybierz konfigurację statków" [formControl]="configuration">
+            <option *ngFor="let option of shipConfigurations" [value]="option.id">Konfiguracja statków: {{ option.values }}</option>
+          </select>
+        </div>
+        
+        <div style="width: 98%; margin: auto; margin-bottom: 10px">
+          <button *ngIf="shipsSet" class="startButton" (click)="start()">{{!this.isStarted ? 'START' : 'STOP'}}</button>
+          <button *ngIf="!shipsSet" class="startButton" (click)="setShips()">UŁÓŻ STATKI</button>
+        </div>
       </div>
+    </div>
+  </div>
 
+  <div class="blocks">
+    <div class="area col-6" *ngFor="let player of players; let i = index">
+      <table *ngIf="selectedSize > 0" [ngStyle]="{ 'background-color': color[i] }">
+        <tr *ngFor="let row of [].constructor(selectedSize); let rowIndex = index">
+          <td *ngFor="let col of [].constructor(selectedSize); let colIndex = index" class="cell" [attr.data-label]="(rowIndex) + getColumnLetter(colIndex)" (click)="setItem(i, rowIndex, colIndex)">
+            <p class="itemEmoji">{{ i === 0 ? states[tiles1[rowIndex][colIndex]] : states[tiles2[rowIndex][colIndex]] }}</p>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
 
