@@ -19,10 +19,14 @@
           </select>
         </div>
         
-        <div style="width: 98%; margin: auto; margin-bottom: 10px">
+        <div *ngIf="isGameOver == false" style="width: 98%; margin: auto; margin-bottom: 10px">
           <button *ngIf="shipsSet" class="startButton" (click)="start()">{{!this.isStarted ? 'START' : 'STOP'}}</button>
           <button *ngIf="!shipsSet" class="startButton" (click)="setShips()">UŁÓŻ STATKI</button>
         </div>
+        <div *ngIf="isGameOver == true" style="width: 98%; margin: auto; margin-bottom: 10px">
+          <button class="startButton" (click)="resetGame()">RESTART</button>
+        </div>
+        <button (click)="downloadFile()">Pobierz Logi Gry</button>
       </div>
     </div>
   </div>
