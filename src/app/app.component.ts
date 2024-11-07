@@ -30,8 +30,10 @@ export class AppComponent implements OnInit {
   selectedDelay: number = 1000;
   shots1: Set<string> = new Set();
   shots2: Set<string> = new Set();
-  nextShoot1: { row: number, col: number }[] = []; 
-  nextShoot2: { row: number, col: number }[] = [];
+  queue1: { row: number, col: number }[] = [];
+  queue2: { row: number, col: number }[] = [];
+  lastHitDirection0: 'vertical' | 'horizontal' | null = null;
+  lastHitDirection1: 'vertical' | 'horizontal' | null = null;
   isStarted: boolean = false;
   shipsSet: boolean = false;
   shipConfigurations: any[] = [];
@@ -178,7 +180,7 @@ export class AppComponent implements OnInit {
   private startShootingLoop(delay: number) {
     const shootPlayers = (playerIndex: number) => {
       if (!this.isStarted) return;
-      this.shoot(playerIndex);
+      this.smartShips.value == false ? this.shoot(playerIndex) : this.shootSmart(playerIndex);
       setTimeout(() => {
         shootPlayers(playerIndex === 0 ? 1 : 0);
       }, delay);
@@ -297,7 +299,8 @@ export class AppComponent implements OnInit {
         { id: 0, values: [3, 2, 2, 1, 1, 1] }, 
         { id: 1, values: [2, 2, 1, 1, 1, 1] },
         { id: 2, values: [3, 3, 2, 1, 1, 1, 1] },
-        { id: 3, values: [2, 2, 2, 2, 1, 1, 1] }
+        { id: 3, values: [2, 2, 2, 2, 1, 1, 1] },
+        { id: 4, values: [8] }, 
       ];
     } else if (size <= 20) {
       configs = [
@@ -331,6 +334,126 @@ export class AppComponent implements OnInit {
     
     this.shipConfigurations = configs;
   }
+  shootSmart(playerIndex: number) {
+    let size = this.selectedSize;
+    let rowIndex: number;
+    let colIndex: number;
+    let shotKey: string = '';
+    let availableShots = size * size - (playerIndex === 0 ? this.shots1.size : this.shots2.size);
+  
+    if (availableShots <= 0) {
+      this.isStarted = false;
+      return;
+    }
+  
+    const hasPlayer1Ships = this.tiles1.some(row => row.includes(2)); // check statkow
+    const hasPlayer2Ships = this.tiles2.some(row => row.includes(2));
+  
+    // Check game over conditions
+    if (!hasPlayer1Ships) {
+      this.isGameEnded(2);
+      return;
+    }
+    if (!hasPlayer2Ships) {
+      this.isGameEnded(1); 
+      return;
+    }
 
+    if (playerIndex === 0 && this.queue1.length > 0) {
+      const nextShot = this.queue1.shift();
+      rowIndex = nextShot?.row ?? 0;
+      colIndex = nextShot?.col ?? 0;
+    } else if (playerIndex === 1 && this.queue2.length > 0) {
+      const nextShot = this.queue2.shift();
+      rowIndex = nextShot?.row ?? 0;
+      colIndex = nextShot?.col ?? 0;
+    } else {
+      do {
+        rowIndex = Math.floor(Math.random() * size);
+        colIndex = Math.floor(Math.random() * size);
+        shotKey = `${rowIndex}:${colIndex}`; 
+      } while (
+        (playerIndex === 0 && this.shots1.has(shotKey)) ||
+        (playerIndex === 1 && this.shots2.has(shotKey))
+      );
+    }
+
+    this.playerShots[playerIndex]++;
+  
+    if (playerIndex === 0) {
+      this.shots1.add(shotKey);
+      if (this.tiles2[rowIndex][colIndex] === 2) {
+        this.tiles2[rowIndex][colIndex] = 3;
+        this.playerHits[0]++;
+        console.log(`[1] HIT ${rowIndex}:${this.getColumnLetter(colIndex)}`);
+        this.queueAdjacentCells(0, rowIndex, colIndex);
+      } else {
+        this.tiles2[rowIndex][colIndex] = 1;
+        console.log(`[1] MISS ${rowIndex}:${this.getColumnLetter(colIndex)}`);
+      }
+    } else {
+      this.shots2.add(shotKey);
+      if (this.tiles1[rowIndex][colIndex] === 2) {
+        this.tiles1[rowIndex][colIndex] = 3;
+        this.playerHits[1]++;
+        console.log(`[2] HIT ${rowIndex}:${this.getColumnLetter(colIndex)}`);
+        this.queueAdjacentCells(1, rowIndex, colIndex);
+      } else {
+        this.tiles1[rowIndex][colIndex] = 1;
+        console.log(`[2] MISS ${rowIndex}:${this.getColumnLetter(colIndex)}`);
+      }
+    }
+  }
+  
+  queueAdjacentCells(playerIndex: number, rowIndex: number, colIndex: number) {
+    const directions = [
+      { row: -1, col: 0 }, // up
+      { row: 1, col: 0 },  // down
+      { row: 0, col: -1 }, // left
+      { row: 0, col: 1 },  // right
+    ];
+  
+    const tiles = playerIndex === 0 ? this.tiles2 : this.tiles1;
+  
+    directions.forEach(({ row, col }) => {
+      const newRow = rowIndex + row;
+      const newCol = colIndex + col;
+  
+      if (newRow >= 0 && newRow < this.selectedSize && newCol >= 0 && newCol < this.selectedSize) {
+        if (tiles[newRow][newCol] !== 1 && tiles[newRow][newCol] !== 3) {
+          if (playerIndex === 0) {
+            this.queue1.push({ row: newRow, col: newCol });
+          } else {
+            this.queue2.push({ row: newRow, col: newCol });
+          }
+        }
+      }
+    });
+  }
+  
+
+  determineNextShots(playerIndex: number, lastHit: { row: number, col: number }, direction: 'vertical' | 'horizontal') {
+    const { row, col } = lastHit;
+    const directions = direction === 'vertical' ? [
+      { row: row - 1, col }, // up
+      { row: row + 1, col }, // down
+    ] : [
+      { row, col: col - 1 }, // left
+      { row, col: col + 1 }, // right
+    ];
+    directions.forEach(({ row, col }) => {
+      if (row >= 0 && row < this.selectedSize && col >= 0 && col < this.selectedSize) {
+        const shotKey = `${row}:${col}`;
+        if ((playerIndex === 0 && !this.shots1.has(shotKey)) || (playerIndex === 1 && !this.shots2.has(shotKey))) {
+          if (playerIndex === 0) {
+            this.queue1.push({ row, col });
+          } else {
+            this.queue2.push({ row, col });
+          }
+        }
+      }
+    });
+  } 
+  
 
 }
