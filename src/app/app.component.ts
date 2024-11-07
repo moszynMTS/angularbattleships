@@ -8,12 +8,17 @@ import { FormControl } from '@angular/forms';
 })
 export class AppComponent implements OnInit {
   subject = new FormControl(0);
+  smartShips = new FormControl(false);
   delay = new FormControl(1000);
   configuration = new FormControl(0);
   sizeOptions: any = [
-    { id: 0, label: "10x10", size: 10 },
-    { id: 1, label: "15x15", size: 15 },
-    { id: 2, label: "20x20", size: 20 },
+    { id: 0, size: 10 },
+    { id: 1, size: 15 },
+    { id: 2, size: 20 },
+    { id: 3, size: 30 },
+    { id: 4, size: 40 },
+    { id: 5, size: 50 },
+    { id: 6, size: 100 },
   ];
   delayOptions: number[] = [1, 10, 100, 1000, 10000];
   players: string[] = ["RED", "BLU"]; //mozna zrobic formularz pod to i sobie dopisywac
@@ -25,13 +30,11 @@ export class AppComponent implements OnInit {
   selectedDelay: number = 1000;
   shots1: Set<string> = new Set();
   shots2: Set<string> = new Set();
+  nextShoot1: { row: number, col: number }[] = []; 
+  nextShoot2: { row: number, col: number }[] = [];
   isStarted: boolean = false;
   shipsSet: boolean = false;
-  shipConfigurations: any[] = [
-    { id: 0, values: [4, 3, 2, 2, 1, 1, 1] },
-    { id: 1, values: [1, 1, 1] },
-    { id: 2, values: [4, 3, 3, 2, 2, 2, 1, 1, 1, 1] },
-  ];
+  shipConfigurations: any[] = [];
   shipsToPlace: number[] = [];
   playerShots: number[] = [0, 0]; // Ardo statystyk
   playerHits: number[] = [0, 0];
@@ -44,6 +47,7 @@ export class AppComponent implements OnInit {
     this.subject.valueChanges.subscribe((res: any) => {
       let selected = this.sizeOptions.at(res);
       this.selectedSize = selected.size;
+      this.generateShipConfigurations(this.selectedSize);
       this.resetGame();
     });
     this.delay.valueChanges.subscribe((res2: any) => {
@@ -58,11 +62,10 @@ export class AppComponent implements OnInit {
       this.resetGame();
     });
     this.subject.patchValue(0);
-    this.configuration.patchValue(0);
+    this.smartShips.patchValue(false);
   }
 
   setItem(playerIndex: number, rowIndex: number, colIndex: number) {
-    // manual checking for debug
     if (playerIndex === 0) {
       this.tiles1[rowIndex][colIndex] = this.tiles1[rowIndex][colIndex] + 1;
     } else {
@@ -71,8 +74,14 @@ export class AppComponent implements OnInit {
   }
 
   getColumnLetter(index: number): string {
-    return String.fromCharCode(65 + index);
+    let columnLetter = '';
+    while (index >= 0) {
+      columnLetter = String.fromCharCode((index % 26) + 65) + columnLetter;
+      index = Math.floor(index / 26) - 1;
+    }
+    return columnLetter;
   }
+  
 
   createEmptyTilesArray(size: number): number[][] {
     return Array.from({ length: size }, () => Array(size).fill(0));
@@ -97,6 +106,10 @@ export class AppComponent implements OnInit {
   }
 
   setShips() {
+    const selectedConfig = this.shipConfigurations.find(x => x.id == this.configuration.value);
+    if (selectedConfig) {
+      this.shipsToPlace = selectedConfig.values;
+    }
     this.placeShipsOnBoard(this.tiles1, this.shipsToPlace);
     this.placeShipsOnBoard(this.tiles2, this.shipsToPlace);
     this.shipsSet = true;
@@ -274,5 +287,50 @@ export class AppComponent implements OnInit {
     document.body.removeChild(a);
     URL.revokeObjectURL(url); // free memory
   }
+
+  generateShipConfigurations(size: number) {
+    this.shipConfigurations = [];
+    let configs = [];
+    
+    if (size <= 10) {
+      configs = [
+        { id: 0, values: [3, 2, 2, 1, 1, 1] }, 
+        { id: 1, values: [2, 2, 1, 1, 1, 1] },
+        { id: 2, values: [3, 3, 2, 1, 1, 1, 1] },
+        { id: 3, values: [2, 2, 2, 2, 1, 1, 1] }
+      ];
+    } else if (size <= 20) {
+      configs = [
+        { id: 0, values: [4, 3, 3, 2, 2, 1, 1, 1, 1] },
+        { id: 1, values: [3, 3, 3, 2, 2, 1, 1, 1, 1] },
+        { id: 2, values: [4, 4, 3, 3, 2, 2, 1, 1, 1, 1] },
+        { id: 3, values: [3, 3, 3, 2, 2, 2, 1, 1, 1, 1] }
+      ];
+    } else if (size <= 30) {
+      configs = [
+        { id: 0, values: [5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1] },
+        { id: 1, values: [4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1] },
+        { id: 2, values: [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1] },
+        { id: 3, values: [5, 4, 4, 4, 3, 3, 3, 2, 2, 1, 1, 1, 1] }
+      ];
+    } else if (size <= 50) {
+      configs = [
+        { id: 0, values: [6, 5, 5, 4, 4, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1] },
+        { id: 1, values: [6, 5, 4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1] },
+        { id: 2, values: [7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1] },
+        { id: 3, values: [6, 6, 5, 5, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1] }
+      ];
+    } else {
+      configs = [
+        { id: 0, values: [8, 7, 7, 6, 6, 5, 4, 4, 3, 3, 3, 2, 2, 1, 1, 1, 1] },
+        { id: 1, values: [9, 8, 7, 6, 6, 5, 5, 4, 3, 3, 3, 2, 2, 1, 1, 1, 1] },
+        { id: 2, values: [8, 8, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1] },
+        { id: 3, values: [9, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1] }
+      ];
+    }
+    
+    this.shipConfigurations = configs;
+  }
+
 
 }

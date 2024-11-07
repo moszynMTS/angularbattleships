@@ -29,6 +29,12 @@ color: #fff;
     display: flex;
     min-width: 96vw;
 }
+.blocksRow{
+    flex-direction: column;
+    min-height: 80vh;
+    display: flex;
+    min-width: 96vw;
+}
 
 table {
     border-collapse: collapse;
@@ -37,44 +43,45 @@ table {
 }
 
 td {
-    width: 50px;
-    height: 50px;
-    margin: 0px;
-    padding: 0px;
-    border: 1px solid black;
-    text-align: center;
-    vertical-align: middle;
-    position: relative; /* Allows positioning of pseudo-element */
-  }
+  width: 30px;
+  height: 0;
+  padding-top: 30px;
+  margin: 0;
+  border: 1px solid black;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+}
 
   td:hover{
     background-color: rgba(238, 255, 0, 0.2);
   }
   
   td::before {
-    content: attr(data-label); /* Use the data-label attribute as content */
+    content: attr(data-label);
     position: absolute;
     top: 5px;
     left: 5px;
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.2); /* Light color for unobtrusive background text */
-    pointer-events: none; /* Prevents the pseudo-element from interfering with interactions */
-    z-index: 1; /* Keeps it below actual content */
+    color: rgba(0, 0, 0, 0.2); 
+    pointer-events: none;
+    z-index: 1; 
   }
   
   .cell {
-    z-index: 2; /* Ensure the content inside the cell is above the pseudo-element */
+    z-index: 2;
   }
   
   .itemEmoji {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Move the item back by half its width and height */
-    font-size: 24px; /* Adjust font size as needed */
+    transform: translate(-50%, -50%);
+    font-size: 24px;
     margin: 0;
     padding: 0;
-    z-index: 2; /* Ensure emoji is above any pseudo-element */
+    z-index: 2;
   }
 
   .startButton{
@@ -85,4 +92,9 @@ td {
     color: #487eb0;
     height: 2rem;
     font-weight: 300
+  }
+
+  
+::ng-deep .mat-slide-toggle-bar{
+    height: 23px;
   }
