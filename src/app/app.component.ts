@@ -32,8 +32,6 @@ export class AppComponent implements OnInit {
   shots2: Set<string> = new Set();
   queue1: { row: number, col: number }[] = [];
   queue2: { row: number, col: number }[] = [];
-  lastHitDirection0: any;
-  lastHitDirection1: any;
   isStarted: boolean = false;
   shipsSet: boolean = false;
   shipConfigurations: any[] = [];
@@ -414,8 +412,6 @@ export class AppComponent implements OnInit {
     ];
   
     const tiles = playerIndex === 0 ? this.tiles2 : this.tiles1;
-    let lastHitDirection: any;
-    lastHitDirection = this.lastHitDirection0 !== null ? this.lastHitDirection0 : this.lastHitDirection1;
   
     directions.forEach(({ row, col }) => {
       const newRow = rowIndex + row;
@@ -423,48 +419,16 @@ export class AppComponent implements OnInit {
   
       if (newRow >= 0 && newRow < this.selectedSize && newCol >= 0 && newCol < this.selectedSize) {
         if (tiles[newRow][newCol] !== 1 && tiles[newRow][newCol] !== 3) {
-          // Only add shot if it's in the direction of the last hit
-          if (this.isInDirection(lastHitDirection, { row, col })) {
-            if (playerIndex === 0) {
-              this.queue1.push({ row: newRow, col: newCol });
-            } else {
-              this.queue2.push({ row: newRow, col: newCol });
-            }
+          if (playerIndex === 0) {
+            this.queue1.push({ row: newRow, col: newCol });
+          } else {
+            this.queue2.push({ row: newRow, col: newCol });
           }
         }
       }
     });
   
-    // Filtrowanie kolejki według kierunku poprzedniego trafienia
-    this.filterShotsByDirection(playerIndex);
   }
-  
-  private isInDirection(direction: 'vertical' | 'horizontal', cell: { row: number, col: number }): boolean {
-    const isVertical = direction === 'vertical';
-    return (isVertical && cell.row === cell.col) || (!isVertical && cell.row !== cell.col);
-  }
-  
-  private filterShotsByDirection(playerIndex: number) {
-    const queueToFilter = playerIndex === 0 ? this.queue1 : this.queue2;
-    const oppositeQueue = playerIndex === 0 ? this.queue2 : this.queue1;
-  
-    // Jeśli nie ma poprzedniego trafienia, pozostaw wszystkie strzały w kolejce
-    if (!this.lastHitDirection0 && !this.lastHitDirection1) {
-      return;
-    }
-  
-    // Usuwanie strzałów z przeciwnego kierunku
-    oppositeQueue.forEach(({ row, col }) => {
-      if (this.isInDirection(this.lastHitDirection0, { row, col }) ||
-          this.isInDirection(this.lastHitDirection1, { row, col })) {
-        queueToFilter.push({ row, col });
-      }
-    });
-  
-    // Oczyszczenie przeciwnej kolejki
-    oppositeQueue.length = 0;
-  }
-  
   
 
 }
