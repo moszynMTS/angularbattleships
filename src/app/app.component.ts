@@ -9,7 +9,7 @@ import { FormControl } from '@angular/forms';
 export class AppComponent implements OnInit {
   subject = new FormControl(0);
   automatedLoops = new FormControl(0);
-  smartShips = new FormControl(true);
+  smartShips = new FormControl(false);
   delay = new FormControl(1);
   configuration = new FormControl(0);
   sizeOptions: any = [
@@ -185,7 +185,7 @@ export class AppComponent implements OnInit {
   private startShootingLoop(delay: number) {
     const shootPlayers = (playerIndex: number) => {
       if (!this.isStarted) return;
-      this.smartShips.value == false
+      this.smartShips.value.toString() == "false"
         ? this.shoot(playerIndex)
         : this.shootSmart(playerIndex);
       setTimeout(() => {
@@ -493,7 +493,6 @@ export class AppComponent implements OnInit {
       }
     }
   }
-
   private queueAdjacentCells(
     playerIndex: number,
     rowIndex: number,
@@ -518,7 +517,7 @@ export class AppComponent implements OnInit {
         newCol >= 0 &&
         newCol < this.selectedSize
       ) {
-        if (tiles[newRow][newCol] !== 1 && tiles[newRow][newCol] !== 3) {
+        if (tiles[newRow][newCol].toString() !== "1" && tiles[newRow][newCol].toString() !== "3") {
           if (playerIndex === 0) {
             this.queue1.push({ row: newRow, col: newCol });
           } else {
